@@ -1,5 +1,6 @@
 # Moovr Sportswear
 
+## Tugas Individu 7
 ## 🌳 1. Apa itu Widget Tree pada Flutter?
 
 **Widget tree** adalah struktur hierarki yang menggambarkan bagaimana widget disusun dan saling berhubungan dalam aplikasi Flutter.
@@ -120,3 +121,120 @@ Widget build(BuildContext context) {
 
 * Gunakan **Hot Reload** saat mengubah tampilan atau logika kecil agar cepat melihat hasilnya.
 * Gunakan **Hot Restart** saat perubahan memengaruhi struktur atau inisialisasi aplikasi.
+
+## 🧾 Tugas Individu 8
+
+### 🧭 1. Perbedaan antara `Navigator.push()` dan `Navigator.pushReplacement()`
+
+Kedua metode ini digunakan untuk **navigasi antar halaman (routing)** di Flutter, namun memiliki perbedaan dalam **pengelolaan stack halaman**.
+
+| Metode                        | Penjelasan                                                                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Navigator.push()`            | Menambahkan halaman baru di atas halaman saat ini pada stack. Halaman sebelumnya tetap disimpan, sehingga pengguna dapat kembali menggunakan tombol **Back**. |
+| `Navigator.pushReplacement()` | Mengganti halaman saat ini dengan halaman baru dan **menghapus halaman sebelumnya** dari stack, sehingga pengguna tidak dapat kembali ke halaman lama.        |
+
+📱 **Contoh penggunaan dalam aplikasi Moovr Sportswear:**
+
+```dart
+// Menambahkan halaman baru tanpa menghapus halaman lama
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => ProductListPage()),
+);
+```
+
+Digunakan ketika pengguna **masih perlu bisa kembali** ke halaman sebelumnya, seperti dari **Home Page → Daftar Produk**.
+
+```dart
+// Mengganti halaman lama dengan halaman baru
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => MyHomePage()),
+);
+```
+
+Digunakan ketika pengguna **tidak perlu kembali** ke halaman sebelumnya, seperti setelah menambahkan produk baru atau login.
+
+---
+
+### 🧱 2. Pemanfaatan `Scaffold`, `AppBar`, dan `Drawer`
+
+Ketiga widget ini berperan penting dalam menjaga **konsistensi struktur halaman** di seluruh aplikasi.
+
+| Widget     | Fungsi                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------- |
+| `Scaffold` | Menyediakan kerangka dasar halaman seperti `AppBar`, `Body`, `Drawer`, dan `FloatingActionButton`. |
+| `AppBar`   | Menampilkan judul aplikasi dan tombol navigasi di bagian atas.                                     |
+| `Drawer`   | Menyediakan menu navigasi samping untuk berpindah antar halaman aplikasi.                          |
+
+🧩 **Contoh penerapan dalam Moovr Sportswear:**
+
+```dart
+return Scaffold(
+  appBar: AppBar(
+    title: const Text('Moovr Sportswear'),
+    backgroundColor: Theme.of(context).colorScheme.primary,
+  ),
+  drawer: const LeftDrawer(),
+  body: const ProductListPage(),
+);
+```
+
+Dengan menggunakan struktur ini di setiap halaman, tampilan aplikasi menjadi **seragam, mudah digunakan, dan profesional**.
+
+---
+
+### 🧩 3. Kelebihan Menggunakan `Padding`, `SingleChildScrollView`, dan `ListView`
+
+Dalam perancangan antarmuka, widget layout ini membantu menampilkan form dan daftar elemen agar **lebih rapi, fleksibel, dan mudah dibaca** di berbagai ukuran layar.
+
+| Widget                  | Fungsi                                                                  | Contoh Penggunaan                                               |
+| ----------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `Padding`               | Memberikan jarak di sekitar widget agar tampilan tidak terlalu padat.   | `Padding(padding: EdgeInsets.all(16.0), child: TextField(...))` |
+| `SingleChildScrollView` | Membuat halaman bisa digulir saat kontennya panjang, mencegah overflow. | Digunakan pada halaman form input produk.                       |
+| `ListView`              | Menampilkan daftar elemen secara vertikal dan otomatis dapat di-scroll. | Digunakan di halaman daftar produk (`ProductListPage`).         |
+
+📘 **Contoh penerapan:**
+
+```dart
+SingleChildScrollView(
+  child: Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      children: [
+        TextField(decoration: InputDecoration(labelText: 'Nama Produk')),
+        TextField(decoration: InputDecoration(labelText: 'Harga')),
+        ElevatedButton(onPressed: () {}, child: Text('Simpan')),
+      ],
+    ),
+  ),
+)
+```
+
+Dengan kombinasi ini, UI tetap **nyaman dilihat dan mudah digunakan**, terutama saat form berisi banyak elemen.
+
+---
+
+### 🎨 4. Penyesuaian Warna Tema agar Konsisten dengan Brand
+
+Agar aplikasi **Moovr Sportswear** memiliki identitas visual yang konsisten, pengaturan warna dilakukan melalui `ThemeData` pada widget `MaterialApp`.
+
+```dart
+return MaterialApp(
+  title: 'Moovr Sportswear',
+  theme: ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.green, // warna utama brand
+    ),
+    useMaterial3: true,
+  ),
+  home: const MyHomePage(),
+);
+```
+
+💡 **Penjelasan:**
+
+* `seedColor` menentukan warna dasar yang digunakan di seluruh aplikasi (misalnya hijau untuk melambangkan energi dan sportivitas).
+* Warna ini secara otomatis diterapkan ke elemen seperti tombol, AppBar, dan ikon.
+* Hasilnya, aplikasi memiliki **identitas visual yang kuat dan konsisten**, mencerminkan karakter brand toko.
+
