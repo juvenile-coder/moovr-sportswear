@@ -14,6 +14,7 @@ class ProductFormPage extends StatefulWidget {
 
 class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   String _name = "";
   int _price = 0;
@@ -30,15 +31,73 @@ class _ProductFormPageState extends State<ProductFormPage> {
     'Other',
   ];
 
+  Future<void> _submitForm(CookieRequest request) async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final response = await request.postJson(
+          "http://localhost:8000/create-flutter/",
+          jsonEncode({
+            "name": _name,
+            "price": _price,
+            "description": _description,
+            "thumbnail": _thumbnail,
+            "category": _category,
+            "is_featured": _isFeatured,
+          }),
+        );
+
+        if (context.mounted) {
+          if (response['status'] == 'success') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response['message'] ?? "Product successfully saved!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MyHomePage()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response['message'] ?? "Something went wrong, please try again."),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Network error: ${e.toString()}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (context.mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Center(
-          child: Text(
-            'Add New Product',
-          ),
+          child: Text('Add New Product'),
         ),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
@@ -70,6 +129,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     if (value == null || value.isEmpty) {
                       return "Product name cannot be empty!";
                     }
+                    if (value.trim().isEmpty) {
+                      return "Product name cannot be only spaces!";
+                    }
                     return null;
                   },
                 ),
@@ -98,6 +160,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     if (int.tryParse(value) == null) {
                       return "Price must be a number!";
                     }
+                    final price = int.tryParse(value);
+                    if (price == null || price <= 0) {
+                      return "Price must be greater than 0!";
+                    }
                     return null;
                   },
                 ),
@@ -123,6 +189,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     if (value == null || value.isEmpty) {
                       return "Description cannot be empty!";
                     }
+                    if (value.trim().isEmpty) {
+                      return "Description cannot be only spaces!";
+                    }
                     return null;
                   },
                 ),
@@ -138,7 +207,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  initialValue: _category,
+                  value: _category,
                   items: _categories
                       .map((cat) => DropdownMenuItem(
                             value: cat,
@@ -182,50 +251,27 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 },
               ),
 
+              const SizedBox(height: 20),
+
               // === Save Button ===
               Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                  ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      final response = await request.postJson(
-                        "http://localhost:8000/create-flutter/",
-                        jsonEncode({
-                          "name": _name,
-                          "price": _price,
-                          "description": _description,
-                          "thumbnail": _thumbnail,
-                          "category": _category,
-                          "is_featured": _isFeatured,
-                        }),
-                      );
-
-                      if (context.mounted) {
-                        if (response['status'] == 'success') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Product successfully saved!")),
-                          );
-
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => MyHomePage()),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Something went wrong, please try again.")),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
+                        ),
+                        onPressed: () => _submitForm(request),
+                        child: const Text(
+                          "Save",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
               ),
             ],
           ),
